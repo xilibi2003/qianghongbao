@@ -24,7 +24,7 @@
             android:name="com.luffy88.qianghongbao.AutoAccessibilityService"
             android:enabled="true"
             android:exported="true"
-            android:label="@string/label"
+            android:label="@string/service_label"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />

@@ -5,7 +5,7 @@
 
 
     <Button
-        android:text="开启微信红包助手"
+        android:text=""
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"

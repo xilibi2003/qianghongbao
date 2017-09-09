@@ -6,6 +6,7 @@ import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.nfc.Tag;
 import android.os.Build;
 import android.os.PowerManager;
@@ -19,7 +20,6 @@ import java.util.List;
 public class AutoAccessibilityService extends AccessibilityService {
     public static final String TAG = "AutoAccessibilityService";
 
-    public static boolean ALL = false;
     private List<AccessibilityNodeInfo> parents;
     private boolean auto = false;
     private int lastbagnum;
@@ -33,16 +33,36 @@ public class AutoAccessibilityService extends AccessibilityService {
     //唤醒屏幕相关
     private PowerManager pm;
     private PowerManager.WakeLock wl = null;
+
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
         parents = new ArrayList<>();
 
+        XLog.e(TAG, "onServiceConnected");
+        ServiceStatus.getInstance(getApplication()).openService();
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return super.onUnbind(intent);
+
     }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        XLog.e(TAG, "onAccessibilityEvent");
+
+        if(!ServiceStatus.getInstance(getApplication()).settingOn()) {
+            ServiceStatus.getInstance(getApplication()).openService();
+        }
+
+        if (!"com.tencent.mm".equals(event.getPackageName()) ) {
+            return;
+        }
+
         int eventType = event.getEventType();
+
         if (auto)
             XLog.e(TAG, "事件:" + eventType);
         switch (eventType) {
@@ -52,7 +72,7 @@ public class AutoAccessibilityService extends AccessibilityService {
 
                 XLog.e(TAG, "窗口内容改变" + pubclassName + auto);
 
-                if (!auto && pubclassName.equals("android.widget.TextView") && ALL) {
+                if (!auto && pubclassName.equals("android.widget.TextView")) {
                     XLog.e(TAG, "窗口内容改变" + auto + pubclassName);
                     getLastPacket(1);
                 }

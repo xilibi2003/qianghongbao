@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">微信自动抢红包神器</string>
     <string name="description">微信自动抢红包神器</string>
-    <string name="label">微信自动抢红包神器-最快最好用的抢红包神器</string>
+    <string name="service_label">微信抢红包神器</string>
+    <string name="open_service">开启微信红包助手</string>
+    <string name="service_opened">微信红包助手已开启(点击关闭)</string>
+    <string name="service_closed">微信红包助手已关闭</string>
 </resources>
