@@ -1,0 +1,15 @@
+.idea
+build
+local.properties
+.gradle
+.DS_Store
+
+*.iml
+
+
+gradle.properties
+gradle/
+gradlew
+
+gradlew.bat
+qianghongbao.iml
