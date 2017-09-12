@@ -13,6 +13,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.animation.TranslateAnimation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,7 @@ public class AutoAccessibilityService extends AccessibilityService {
     public static final int MSG_NF_SEND = 0x01;
     public static final int MSG_ITEM_CLICK = 0x02;
     public static final int MSG_BACK_CLICK = 0x03;
+    public static final int MSG_LOCK = 0x04;
 
     private Handler myHandle = new Handler() {
         @Override
@@ -77,6 +79,8 @@ public class AutoAccessibilityService extends AccessibilityService {
             }
             else if (msg.what == MSG_BACK_CLICK) {
                 performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+            } else if (msg.what == MSG_LOCK) {
+                lock();
             }
         }
     };
@@ -160,7 +164,7 @@ public class AutoAccessibilityService extends AccessibilityService {
                     autoCheckFromNf = false;
                 }
                 if (hongbaoNum == 0) {
-                    lock();
+                    myHandle.sendEmptyMessageDelayed(MSG_LOCK, 5 * 1000);
                 }
                 break;
         }
@@ -263,11 +267,19 @@ public class AutoAccessibilityService extends AccessibilityService {
 
     private void lock() {
         if (kl != null && wl != null ) {
-            //锁屏
-            kl.reenableKeyguard();
 
-            //释放wakeLock，关灯
-            wl.release();
+            try {
+                //锁屏
+                kl.reenableKeyguard();
+
+                //释放wakeLock，关灯
+                if(wl.isHeld()) {
+                    wl.release();
+                }
+            } catch (Exception e) {
+                XLog.d(TAG, "lock error:" + e.toString());
+            }
+
             mNeedLock = false;
         }
     }
