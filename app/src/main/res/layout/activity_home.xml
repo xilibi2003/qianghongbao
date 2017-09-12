@@ -4,11 +4,35 @@
     android:layout_height="match_parent">
 
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/guide_1" />
+
+
+        <ImageView
+            android:src="@drawable/guide_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+
     <Button
-        android:text=""
-        android:layout_width="wrap_content"
+        android:background="@drawable/red_round_rectangle"
+        android:textSize="18sp"
+        android:textColor="#ffffff"
+        android:layout_margin="20dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:id="@+id/button"/>
