@@ -7,27 +7,27 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.nfc.Tag;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.os.PowerManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 
 public class AutoAccessibilityService extends AccessibilityService {
     public static final String TAG = "AutoAccessibilityService";
 
     private List<AccessibilityNodeInfo> parents;
-    private boolean auto = false;
-    private int lastbagnum;
-    String pubclassName;
-    String lastMAIN;
+    private boolean autoCheckFromNf = false;
+    private boolean mNeedLock = false;
+
     private boolean WXMAIN = false;
 
-    private boolean enableKeyguard = true;//默认有屏幕锁
     private KeyguardManager km;
     private KeyguardManager.KeyguardLock kl;
     //唤醒屏幕相关
@@ -49,9 +49,41 @@ public class AutoAccessibilityService extends AccessibilityService {
 
     }
 
+    public static final int MSG_NF_SEND = 0x01;
+    public static final int MSG_ITEM_CLICK = 0x02;
+    public static final int MSG_BACK_CLICK = 0x03;
+
+    private Handler myHandle = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == MSG_NF_SEND) {
+                Notification notification = (Notification)msg.obj ;
+                PendingIntent pendingIntent = notification.contentIntent;
+                try {
+                    autoCheckFromNf = true;
+                    wakeAndUnlock();
+                    pendingIntent.send();
+                    XLog.e(TAG, "进入微信");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            else if (msg.what == MSG_ITEM_CLICK) {
+                AccessibilityNodeInfo item = (AccessibilityNodeInfo)msg.obj ;
+                if (item!=null) {
+                    item.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                }
+            }
+            else if (msg.what == MSG_BACK_CLICK) {
+                performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+            }
+        }
+    };
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        XLog.e(TAG, "onAccessibilityEvent");
+
 
         if(!ServiceStatus.getInstance(getApplication()).settingOn()) {
             ServiceStatus.getInstance(getApplication()).openService();
@@ -63,118 +95,118 @@ public class AutoAccessibilityService extends AccessibilityService {
 
         int eventType = event.getEventType();
 
-        if (auto)
-            XLog.e(TAG, "事件:" + eventType);
         switch (eventType) {
             //当通知栏发生改变时
-            case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
-                pubclassName = event.getClassName().toString();
-
-                XLog.e(TAG, "窗口内容改变" + pubclassName + auto);
-
-                if (!auto && pubclassName.equals("android.widget.TextView")) {
-                    XLog.e(TAG, "窗口内容改变" + auto + pubclassName);
-                    getLastPacket(1);
-                }
-                if (auto && WXMAIN) {
-                    getLastPacket();
-                    auto = false;
-                }
-
-                break;
             case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED:
 
-                XLog.e(TAG, "通知事件");
                 List<CharSequence> texts = event.getText();
                 if (!texts.isEmpty()) {
                     for (CharSequence text : texts) {
                         String content = text.toString();
-                        XLog.e(TAG, "通知事件："+content);
+                        XLog.e(TAG, "通知事件：" + content);
+
                         if (content.contains("微信红包")) {
                             if (event.getParcelableData() != null &&
                                     event.getParcelableData() instanceof Notification) {
-                                Notification notification = (Notification) event.getParcelableData();
-                                PendingIntent pendingIntent = notification.contentIntent;
-                                try {
-                                    auto = true;
-                                    wakeAndUnlock2(true);
-                                    pendingIntent.send();
-                                    XLog.e(TAG, "进入微信" + auto + event.getClassName().toString());
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+
+                                Message message = myHandle.obtainMessage(MSG_NF_SEND, event.getParcelableData());
+                                Random rand = new Random();
+                                myHandle.sendMessageDelayed(message, 1000 + rand.nextInt(1000));   // delay1秒+ 时间，防止过快, 正常人点击应该改一秒以上
                             }
                         }
                     }
                 }
                 break;
+
             //当窗口的状态发生改变时
             case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
                 String className = event.getClassName().toString();
+                XLog.e(TAG, "窗口的状态发生改变：" + className);
                 if (className.equals("com.tencent.mm.ui.LauncherUI")) {
-                    //点击最后一个红包
-                    XLog.e(TAG, "点击红包");
-                    if (auto)
-                        getLastPacket();
-                    auto = false;
+                    if (autoCheckFromNf) {   // 从状态栏进入
+                        findHongbao();
+                    }
+
+                    autoCheckFromNf = false;
                     WXMAIN = true;
-                } else if (className.equals("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyReceiveUI")) {
-                    //开红包6.5.3 be_
-                    // 6.3.32bdh
+                } else if (className.contains("com.tencent.mm.plugin.luckymoney.ui.En_")) {
+                    // com.tencent.mm.plugin.luckymoney.ui.En_fba4b94f  in 6.5.13
                     XLog.e(TAG, "开红包");
-                    click("com.tencent.mm:id/bdh");
-                    auto = false;
+                    click("com.tencent.mm:id/bpe");
+                    autoCheckFromNf = false;
                     WXMAIN = false;
                 } else if (className.equals("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyDetailUI")) {
                     //退出红包
                     XLog.e(TAG, "退出红包");
-                    click("com.tencent.mm:id/gq");
-                    WXMAIN = false;
+                    if (!click("com.tencent.mm:id/hq")) {
+                        sendBackMsg();
+                    }
 
                 } else {
                     WXMAIN = false;
-                    lastMAIN = className;
+                }
+                break;
+
+            case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
+
+                String pubclassName = event.getClassName().toString();
+
+                XLog.e(TAG, "窗口内容改变" + pubclassName + ", from nf:" + autoCheckFromNf + ", WXMAIN:" + WXMAIN);
+                int hongbaoNum = 0;
+                if (!autoCheckFromNf && pubclassName.equals("android.widget.TextView")) {
+                    hongbaoNum = findHongbao();
+                } else if (autoCheckFromNf && WXMAIN) {
+                    hongbaoNum = findHongbao();
+                    autoCheckFromNf = false;
+                }
+                if (hongbaoNum == 0) {
+                    lock();
                 }
                 break;
         }
     }
 
+
+    private void sendClickMsg(AccessibilityNodeInfo info) {
+        Message message = myHandle.obtainMessage(MSG_ITEM_CLICK, info);
+        Random rand = new Random();
+        myHandle.sendMessageDelayed(message, 300 + rand.nextInt(1000));   // delay 0.3s+ 时间，防止过快
+    }
+
+    private void sendBackMsg() {
+        Message message = myHandle.obtainMessage(MSG_BACK_CLICK);
+        Random rand = new Random();
+        myHandle.sendMessageDelayed(message, 300 + rand.nextInt(1000));   // delay 0.3s+ 时间，防止过快
+    }
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private void click(String clickId) {
+    private boolean click(String clickId) {
+        boolean clickok = false;
         AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
         if (nodeInfo != null) {
             List<AccessibilityNodeInfo> list = nodeInfo.findAccessibilityNodeInfosByViewId(clickId);
+            XLog.d(TAG, "clickid:" + clickId + ", list:" + list.size());
             for (AccessibilityNodeInfo item : list) {
-                item.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                sendClickMsg(item);
+                clickok = true;
             }
         }
+        return clickok;
     }
 
-    private void getLastPacket() {
+
+    private int findHongbao() {
 
         AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         recycle(rootNode);
-        XLog.e(TAG, "当前页面红包数老方法" + parents.size());
+
+        XLog.e(TAG, "界面红包数:" + parents.size());
+        int size = parents.size();
         if (parents.size() > 0) {
             parents.get(parents.size() - 1).performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            lastbagnum = parents.size();
             parents.clear();
         }
-    }
-
-    private void getLastPacket(int c) {
-
-        XLog.e(TAG, "新方法" + parents.size());
-        AccessibilityNodeInfo rootNode = getRootInActiveWindow();
-        recycle(rootNode);
-        XLog.e(TAG, "last++" + lastbagnum + "当前页面红包数" + parents.size());
-        if (parents.size() > 0 && WXMAIN) {
-            XLog.e(TAG, "页面大于O且在微信界面");
-            if (lastbagnum < parents.size())
-                parents.get(parents.size() - 1).performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            lastbagnum = parents.size();
-            parents.clear();
-        }
+        return size;
     }
 
     public void recycle(AccessibilityNodeInfo info) {
@@ -183,7 +215,8 @@ public class AutoAccessibilityService extends AccessibilityService {
                 if (info.getText() != null) {
                     if ("领取红包".equals(info.getText().toString())) {
                         if (info.isClickable()) {
-                            info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                            XLog.e(TAG, "领取红包 text click");
+                            sendClickMsg(info);
                         }
                         AccessibilityNodeInfo parent = info.getParent();
                         while (parent != null) {
@@ -207,36 +240,38 @@ public class AutoAccessibilityService extends AccessibilityService {
 
         }
     }
-    private void wakeAndUnlock2(boolean b)
+    private void wakeAndUnlock()
     {
-        if(b)
-        {
-            //获取电源管理器对象
-            pm=(PowerManager) getSystemService(Context.POWER_SERVICE);
+        //获取电源管理器对象
+        pm=(PowerManager) getSystemService(Context.POWER_SERVICE);
 
-            //获取PowerManager.WakeLock对象，后面的参数|表示同时传入两个值，最后的是调试用的Tag
-            wl = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "bright");
+        //获取PowerManager.WakeLock对象，后面的参数|表示同时传入两个值，最后的是调试用的Tag
+        wl = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "bright");
 
-            //点亮屏幕
-            wl.acquire();
+        //点亮屏幕
+        wl.acquire();
 
-            //得到键盘锁管理器对象
-            km= (KeyguardManager)getSystemService(Context.KEYGUARD_SERVICE);
-            kl = km.newKeyguardLock("unLock");
+        //得到键盘锁管理器对象
+        km= (KeyguardManager)getSystemService(Context.KEYGUARD_SERVICE);
+        kl = km.newKeyguardLock("unLock");
 
-            //解锁
-            kl.disableKeyguard();
-        }
-        else
-        {
+        //解锁
+        kl.disableKeyguard();
+        mNeedLock = true;
+
+    }
+
+    private void lock() {
+        if (kl != null && wl != null ) {
             //锁屏
             kl.reenableKeyguard();
 
             //释放wakeLock，关灯
             wl.release();
+            mNeedLock = false;
         }
-
     }
+
 
     @Override
     public void onInterrupt() {
