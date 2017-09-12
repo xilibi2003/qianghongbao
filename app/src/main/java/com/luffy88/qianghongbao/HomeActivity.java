@@ -37,10 +37,14 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
         mServiceBtn = (Button)findViewById(R.id.button);
         mServiceBtn.setOnClickListener(this);
-
-        myHandler.sendEmptyMessageDelayed(MSG_CHECK_SERVICE, 100);
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        myHandler.sendEmptyMessageDelayed(MSG_CHECK_SERVICE, 100);
+    }
 
     @Override
     public void onClick(View v) {
