@@ -69,6 +69,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         LinearLayout bannerLayout = (LinearLayout) findViewById(R.id.ll_banner);
         // 将广告条加入到布局中
         bannerLayout.addView(bannerView);
+
+        startService(new Intent(this, NotificationService.class));
     }
 
 

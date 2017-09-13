@@ -3,9 +3,9 @@ build
 local.properties
 .gradle
 .DS_Store
-
+qhb.store
 *.iml
-
+app/*.apk
 
 gradle.properties
 gradle/
