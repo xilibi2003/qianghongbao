@@ -8,7 +8,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.annotation.IntDef;
 import android.support.v4.app.NotificationCompat;
@@ -16,6 +18,8 @@ import android.support.v4.app.NotificationCompat;
 public class NotificationService extends Service {
 
     private static final int  NF_ID = 1;
+    private static final int  MSG_UPDATE_NF = 2;
+
     private static final String TAG = "NotificationService";
     private Bitmap mIconBitmap = null;
 
@@ -31,7 +35,6 @@ public class NotificationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
     }
 
     @Override
@@ -39,6 +42,19 @@ public class NotificationService extends Service {
         updateNotification();
         return super.onStartCommand(intent, flags, startId);
     }
+
+
+    Handler myHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            int what = msg.what;
+            if (what == MSG_UPDATE_NF) {
+                updateNotification();
+            }
+        }
+    };
+
 
 
     private void updateNotification() {
@@ -55,17 +71,17 @@ public class NotificationService extends Service {
         if (ServiceStatus.getInstance(getApplication()).serviceOn()) {
 
             if (passTime > 0) {
-                if (passTime < 1000 * 60 * 10) {  // 10分钟内
+                if (passTime < 1000 * 60 * 20) {  // 20分钟内
                     title = "微信抢红包神器已开启";
                     msg = "点击这里有惊喜，好玩的应用等着你";
                     hi.putExtra("SHOWAD", true);
                 }
-                else if (passTime < 1000 * 60 * 30)   // 30分钟内
+                else if (passTime < 1000 * 60 * 60 * 1)   // 1小时内
                 {
                     title = "微信抢红包神器已开启";
                     msg = "时刻准备着为主人抢红包";
                     hi.putExtra("SHOWAD", true);
-                } else if (passTime < 1000 * 60 * 30) {
+                } else if (passTime < 1000 * 60 * 60 * 1) {
                     title = "微信抢红包神器迷失了自己";
                     msg = "进入应用看看神器是否正常工作";
                     hi.putExtra("SHOWAD", false);
@@ -94,6 +110,8 @@ public class NotificationService extends Service {
                 .setContentIntent(pi);
 
         nm.notify(NF_ID, nfbuilder.build() );
+
+        myHandler.sendEmptyMessageDelayed(MSG_UPDATE_NF, 10 * 60 * 1000);
     }
 
 }

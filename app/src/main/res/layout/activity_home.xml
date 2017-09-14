@@ -91,6 +91,7 @@
         android:id="@+id/close_ad"
         android:textColor="#ffffff"
         android:textSize="14sp"
+        android:visibility="gone"
         android:layout_marginBottom="70dp"
         android:layout_marginRight="24dp"
         android:background="@null"
