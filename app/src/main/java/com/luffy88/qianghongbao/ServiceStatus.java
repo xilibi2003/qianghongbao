@@ -3,6 +3,7 @@ package com.luffy88.qianghongbao;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.accessibility.AccessibilityManager;
@@ -53,6 +54,12 @@ public class ServiceStatus {
 
     public void  openService() {
         mServiceOn = true;
+
+        mPref.edit().putLong("lastActiveTime", System.currentTimeMillis()).apply();
+    }
+
+    public long getLastActiveTime() {
+        return mPref.getLong("lastActiveTime", 0);
     }
 
     public void  stopService() {
