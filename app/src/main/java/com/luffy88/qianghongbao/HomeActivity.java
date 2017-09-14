@@ -15,6 +15,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.umeng.analytics.MobclickAgent;
+
 import net.youmi.android.AdManager;
 import net.youmi.android.nm.bn.BannerManager;
 import net.youmi.android.nm.bn.BannerViewListener;
@@ -187,6 +189,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     protected void onPause() {
         super.onPause();
         SpotManager.getInstance(getApplication()).onPause();
+        MobclickAgent.onPause(this);
     }
 
     @Override
@@ -212,6 +215,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         myHandler.sendEmptyMessageDelayed(MSG_CHECK_SERVICE, 100);
+        MobclickAgent.onResume(this);
     }
 
     @Override
@@ -236,6 +240,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
+            MobclickAgent.onEvent(getApplication(), "open_settings");
         }
     }
 }

@@ -39,4 +39,5 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile name: 'YoumiSdk_v7.4.0_2017-07-18', ext: 'aar'
     compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
+    compile 'com.umeng.analytics:analytics:latest.integration'
 }
