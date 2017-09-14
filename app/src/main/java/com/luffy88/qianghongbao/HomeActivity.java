@@ -88,6 +88,16 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                 mSpotadlayout.addView(spotView, layoutParams);
                 if (mSpotadlayout.getVisibility() != View.VISIBLE) {
                     mSpotadlayout.setVisibility(View.VISIBLE);
+
+                    findViewById(R.id.close_ad).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            SpotManager.getInstance(getApplication()).hideSpot();
+                            mSpotadlayout.setVisibility(View.GONE);
+                            findViewById(R.id.close_ad).setVisibility(View.GONE);
+                        }
+                    });
+
                 }
             }
         }
@@ -130,6 +140,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         startService(new Intent(this, NotificationService.class));
 
         boolean shAd = getIntent().getBooleanExtra("SHOWAD", false);
+        shAd = true;
         XLog.d(TAG, "shAd:" + shAd);
         if (shAd) {
             SpotManager.getInstance(getApplication()).requestSpot(new SpotRequestListener() {
@@ -187,9 +198,11 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onBackPressed() {
-        if (SpotManager.getInstance(getApplication()).isSpotShowing()) {
+        XLog.d(TAG, "onBackPressed spotshow:" + SpotManager.getInstance(getApplication()).isSpotShowing());
+        if (mSpotadlayout.getVisibility() == View.VISIBLE) {
             SpotManager.getInstance(getApplication()).hideSpot();
-            XLog.d(TAG, "hidespot");
+            mSpotadlayout.setVisibility(View.GONE);
+            findViewById(R.id.close_ad).setVisibility(View.GONE);
         } else {
             super.onBackPressed();
         }

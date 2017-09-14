@@ -83,6 +83,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+
+
     </RelativeLayout>
+
+    <Button
+        android:id="@+id/close_ad"
+        android:textColor="#ffffff"
+        android:textSize="14sp"
+        android:layout_marginBottom="70dp"
+        android:layout_marginRight="24dp"
+        android:background="@null"
+        android:text="@string/close_ad"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 </RelativeLayout>

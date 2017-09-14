@@ -8,6 +8,7 @@
     <string name="service_closed">抢红包神器已关闭</string>
 
     <string name="description">微信自动抢红包神器</string>
+    <string name="close_ad">关闭</string>
 
 </resources>
 
