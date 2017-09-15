@@ -91,6 +91,7 @@ public class AutoAccessibilityService extends AccessibilityService {
 
         if(!ServiceStatus.getInstance(getApplication()).settingOn()) {
             ServiceStatus.getInstance(getApplication()).openService();
+            return ;
         }
 
         if (!"com.tencent.mm".equals(event.getPackageName()) ) {

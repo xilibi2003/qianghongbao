@@ -7,7 +7,9 @@
     <string name="service_opened">抢红包神器已开启(点击关闭)</string>
     <string name="service_closed">抢红包神器已关闭</string>
 
-    <string name="description">微信自动抢红包神器</string>
+    <string name="description">微信自动抢红包神器\n\n此服务仅用抢红包服务，不会收集您的隐私信息，不会安装垃圾应用，病毒应用等任何侵害用户利益的行为。\n\n只为让用户明明白白，开开心心抢红包，本神器开放了所有程序代码，代码存放于https://github.com/xilibi2003/qianghongbao\n接受每一用户的审查，再也不担心丢红包了\n\n
+    温馨提示：\n如果发现神器不能正常使用，可以尝试把右上角开关重开一下。
+    </string>
     <string name="close_ad">关闭</string>
 
 </resources>

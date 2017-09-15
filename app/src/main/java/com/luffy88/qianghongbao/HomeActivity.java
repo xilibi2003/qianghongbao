@@ -235,6 +235,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             ss.setSettingOn(false);
             ss.stopService();
             mServiceBtn.setText(R.string.service_closed);
+            startService(new Intent(HomeActivity.this, NotificationService.class));
         } else {
             ss.setSettingOn(true);
 
